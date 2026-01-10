@@ -1,3 +1,5 @@
+<b>Author:</b> XHwak
+
 # Polygon Intersection Detection Library - Technical OnePager
 
 ## 1. Overview
