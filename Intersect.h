@@ -2,8 +2,7 @@
 #include <string>
 #include <vector>
 
-class Intersect
-{
+class Intersect {
 public:
 	static bool overlap(std::string polygonA, std::string polygonB);
 
