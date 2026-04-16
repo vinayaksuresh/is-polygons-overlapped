@@ -1,4 +1,21 @@
 #include "Intersect.h"
+#include <cmath>
+#include <vector>
+#include <sstream>
+
+std::string generatePolygonString(int num_sides, double radius, double center_x, double center_y) {
+    std::stringstream ss;
+    for (int i = 0; i < num_sides; ++i) {
+        double angle = 2 * M_PI * i / num_sides;
+        double x = center_x + radius * std::cos(angle);
+        double y = center_y + radius * std::sin(angle);
+        ss << x << " " << y;
+        if (i < num_sides - 1) {
+            ss << ",";
+        }
+    }
+    return ss.str();
+}
 
 int main()
 {
