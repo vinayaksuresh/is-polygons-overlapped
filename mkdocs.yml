@@ -1,0 +1,17 @@
+site_name: 'Polygon Intersection Detection'
+site_description: 'Header-only C++ library to detect overlap between polygons'
+site_author: 'XHwak'
+repo_url: ''
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Usage: usage.md
+  - API Reference: api.md
+  - Resources: resources.md
+
+docs_dir: docs
+site_dir: site
