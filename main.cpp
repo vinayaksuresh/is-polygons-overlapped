@@ -29,7 +29,14 @@ int main()
 	std::string hexagon = "-6 -8,-10 -6,-12 -2,-10 2,-6 4,-2 2,-6 -1.7,-2 -6,-6 -8";
 	std::string newpoly = "-10 -10,-16 0,-14 2,-2 -2,-10 -10";
 
-	/* Strings with invalid cases*/
+	// Negative quadrant decagon/pentagon test polygons
+std::string decagonNegA = "-12 -10,-14 -8,-15 -6,-14 -4,-12 -3,-10 -4,-8 -6,-8 -8,-10 -10,-11 -11,-12 -10";
+std::string pentagonNegA = "-17 -9,-9 -2,-7 -7,-9 -12,-16 -11,-17 -9";
+
+std::string decagonNegB = "-32 -34,-34 -32,-36 -30,-35 -28,-33 -26,-31 -26,-29 -28,-28 -30,-28 -32,-30 -34,-32 -34";
+std::string pentagonNegB = "-14 -12,-12 -10,-10 -12,-11 -14,-13 -14,-14 -12";
+
+/* Strings with invalid cases*/
 	std::string invalidPolygon = "0 0,0 1.5,2 0,0 1";
 	std::string singlePoint = "0 0.5";
 	std::string invalidPolygonPoints1 = "-1";
@@ -238,7 +245,43 @@ int main()
 	}
 	std::cout << std::endl;
 
-	/* ================================ Test Case Scenarios for Invalid Error Handling ==================================================== */
+	/*  Overlapping */
+std::cout << "decagonNegA and pentagonNegA are: ";
+try
+{
+	if (Intersect::overlap(decagonNegA, pentagonNegA))
+	{
+		std::cout << "Overlapping" << std::endl;
+	}
+	else
+	{
+		std::cout << "Not Overlapping" << std::endl;
+	}
+}
+catch (std::string e)
+{
+	std::cout << e << std::endl;
+}
+
+/*  Not Overlapping */
+std::cout << "decagonNegB and pentagonNegB are: ";
+try
+{
+	if (Intersect::overlap(decagonNegB, pentagonNegB))
+	{
+		std::cout << "Overlapping" << std::endl;
+	}
+	else
+	{
+		std::cout << "Not Overlapping" << std::endl;
+	}
+}
+catch (std::string e)
+{
+	std::cout << e << std::endl;
+}
+
+/* ================================ Test Case Scenarios for Invalid Error Handling ==================================================== */
 
 	std::cout << "polygonAlpha and invalidPolygon are: ";
 	try
