@@ -1,0 +1,24 @@
+polygonAlpha and polygonBravo are: Overlapping
+polygonAlpha and polygonCharlie are: Not overlapping
+polygonCharlie and polygonAlpha are: Not overlapping
+squarePolygon1 and squarePolygon2 are: Overlapping
+triangle1 and triangle2 are: Not overlapping
+triangle1 and triangle3 are: Overlapping
+pentagon and nonConvexPolynAlpha are: Overlapping
+triangle4 and triangle5 are: Overlapping
+triangleAlpha and triangleAlphaMirror are: Not Overlapping
+nonConvexPolyBravo and nonConvexPolyCharlie are: Overlapping
+hexagon and newpoly are: Overlapping
+
+decagonNeg and pentagonNegOverlap are: Overlapping
+decagonNeg and pentagonNegNoOverlap are: Not Overlapping
+
+polygonAlpha and invalidPolygon are: ERROR!! Inputs are not valid Polygons.
+polygonAlpha and singlePoint are: ERROR!! Inputs are not valid Polygons.
+polygonAlpha and invalidPolygonPoints1 are: ERROR!! Input contains invalid no:of polygon co-ordinates.
+polygonAlpha and invalidPolygonPoints2 are: ERROR!! Input contains invalid no:of polygon co-ordinates.
+nonConvexPolyAlpha and stringWithInvalidPointValues1 are: ERROR!! Input string contains invalid values for a point.
+nonConvexPolyBravo and stringWithInvalidPointValues2 are: ERROR!! Input string contains invalid values for a point.
+nonConvexPolyBravo and stringWithInvalidPointValues3 are: ERROR!! Input string contains invalid values for a point.
+
+End of Polygon Overlap Check

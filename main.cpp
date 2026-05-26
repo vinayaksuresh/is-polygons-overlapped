@@ -29,6 +29,11 @@ int main()
 	std::string hexagon = "-6 -8,-10 -6,-12 -2,-10 2,-6 4,-2 2,-6 -1.7,-2 -6,-6 -8";
 	std::string newpoly = "-10 -10,-16 0,-14 2,-2 -2,-10 -10";
 
+		// Negative quadrant polygons: decagon vs pentagon (overlap and no-overlap)
+		std::string decagonNeg = "-14 -10,-13 -8,-12 -7,-10 -6,-8 -7,-7 -8,-6 -10,-7 -12,-8 -13,-10 -14,-14 -10";
+		std::string pentagonNegOverlap = "-10 -10,-5 -10,-8 -6,-12 -6,-15 -10,-10 -10";
+		std::string pentagonNegNoOverlap = "-22 -20,-21 -18,-19 -18,-18 -20,-20 -22,-22 -20";
+
 	/* Strings with invalid cases*/
 	std::string invalidPolygon = "0 0,0 1.5,2 0,0 1";
 	std::string singlePoint = "0 0.5";
@@ -224,6 +229,42 @@ int main()
 	try
 	{ /* Overlapping */
 		if (Intersect::overlap(hexagon, newpoly))
+		{
+			std::cout << "Overlapping" << std::endl;
+		}
+		else
+		{
+			std::cout << "Not Overlapping" << std::endl;
+		}
+	}
+	catch (std::string e)
+	{
+		std::cout << e << std::endl;
+	}
+	std::cout << std::endl;
+
+	// New tests: decagonNeg with pentagonNegOverlap (Overlapping) and pentagonNegNoOverlap (Not Overlapping)
+	std::cout << "decagonNeg and pentagonNegOverlap are: ";
+	try
+	{
+		if (Intersect::overlap(decagonNeg, pentagonNegOverlap))
+		{
+			std::cout << "Overlapping" << std::endl;
+		}
+		else
+		{
+			std::cout << "Not Overlapping" << std::endl;
+		}
+	}
+	catch (std::string e)
+	{
+		std::cout << e << std::endl;
+	}
+
+	std::cout << "decagonNeg and pentagonNegNoOverlap are: ";
+	try
+	{
+		if (Intersect::overlap(decagonNeg, pentagonNegNoOverlap))
 		{
 			std::cout << "Overlapping" << std::endl;
 		}
