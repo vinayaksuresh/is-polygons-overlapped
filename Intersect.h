@@ -177,6 +177,10 @@ bool Intersect::checkIfPointIsInsideLineSeg(Intersect::Point pt_a, Intersect::Po
  * Function: overlap
  * Description:This function checks overlapping of two polygons
  * Parameter: PolygonA points string and PolygonB points string
+ *
+ * Edge case semantics:
+ * - Shared/collinear edges are treated as non-overlap. Internally, checkIntersecting returns false when the two edges are parallel (determinant == 0), so collinear shared edges are not reported as intersections.
+ * - Touching at a single point (including endpoints) with non-parallel edges is considered overlap because the computed intersection point must lie on both segments and checkIfPointIsInsideLineSeg uses inclusive bounds.
  * Return Type: bool
  * =======================================================================================================================================
 */

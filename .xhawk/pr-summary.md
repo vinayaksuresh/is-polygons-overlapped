@@ -1,0 +1,4 @@
+- Add Edge Case Semantics section to README describing touching/collinear behavior
+- Update shared-edge test to Expected: false with brief rationale (determinant == 0)
+- Add new example for single-point touching (endpoint) reported as overlap
+- Augment overlap() comment in Intersect.h to explicitly state collinear/touching semantics and tie to determinant and inclusive checks
