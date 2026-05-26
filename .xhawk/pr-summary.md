@@ -1,0 +1,4 @@
+- Added decagon and pentagon polygon strings with all-negative coordinates in main.cpp
+- Introduced two test scenarios: overlapping and non-overlapping, following existing try/catch and output style
+- Ensured polygons are explicitly closed and valid per Intersect::isValidPolygon
+- Verified build and output show expected Overlapping/Not Overlapping results for the new cases
