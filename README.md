@@ -175,6 +175,11 @@ Intersect (Static Class)
 3. Point vector → `isValidPolygon()` → validation
 4. Point vectors → intersection algorithms → overlap result
 
+### Edge Case Semantics (touching/collinear)
+- Shared edge (collinear) → false (parallel lines, determinant == 0)
+- Touching at a single vertex with non-parallel edges → true (endpoint intersection counted)
+- Containment without edge crossings is not detected by the current algorithm.
+
 ## 5. Practical Testing & Verification
 
 ### Test Case 1: Basic Intersection
@@ -207,10 +212,20 @@ assert(result == false);
 std::string polyA = "0,0 1,0 1,1 0,1 0,0";
 std::string polyB = "1,0 2,0 2,1 1,1 1,0";  // Adjacent squares
 
-// Expected: Depends on implementation (edge touching)
+// Expected: false (shared edge is treated as non-overlap; segments are parallel so determinant == 0)
 bool result = Intersect::overlap(polyA, polyB);
 
 // Verification: Check if algorithm treats edge contact as intersection
+```
+
+### Test Case 3b: Touching at a single point
+```cpp
+std::string polyA = "0,0 1,0 1,1 0,1 0,0";  // Unit square at origin
+std::string polyB = "1,1 2,1 2,2 1,2 1,1";  // Adjacent square touching at (1,1)
+
+// Expected: true (single-vertex contact with non-parallel edges is considered overlap)
+bool result = Intersect::overlap(polyA, polyB);
+assert(result == true);
 ```
 
 ### Test Case 4: Invalid Input Handling

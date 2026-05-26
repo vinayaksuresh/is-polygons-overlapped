@@ -1,0 +1,1 @@
+Document overlap edge cases: collinear edges false, point-touch true
