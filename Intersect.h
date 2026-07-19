@@ -1,10 +1,15 @@
+#include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 class Intersect {
 public:
 	static bool overlap(std::string polygonA, std::string polygonB);
+	static bool overlap(std::string polygonA, std::string polygonB, std::string polygonC);
 
 private:
 	struct Point
@@ -18,71 +23,90 @@ private:
 	static bool checkIntersecting(Intersect::Point pt_a, Intersect::Point pt_b, Intersect::Point pt_c, Intersect::Point pt_d, Intersect::Point *intersect);
 	static bool checkIfPointIsInsideLineSeg(Intersect::Point pt_a, Intersect::Point pt_b, Intersect::Point pt_check);
 	static bool isValidPolygon(std::vector<Point> polygon);
+	static std::vector<Point> parsePolygon(std::string polygon);
+	static bool polygonsOverlap(const std::vector<Point> &polygonA, const std::vector<Point> &polygonB);
+	static bool polygonsOverlapAllThree(const std::vector<Point> &polygonA, const std::vector<Point> &polygonB, const std::vector<Point> &polygonC);
+	static bool nearlyEqual(float left, float right);
+	static bool samePoint(Point left, Point right);
+	static float cross(Point pt_a, Point pt_b, Point pt_c);
+	static bool pointOnSegment(Point pt_a, Point pt_b, Point pt_check);
+	static bool pointInPolygon(Point point, const std::vector<Point> &polygon);
+	static std::vector<Point> edgeIntersectionCandidates(Point pt_a, Point pt_b, Point pt_c, Point pt_d);
+	static void addUniquePoint(std::vector<Point> &points, Point point);
 };
 
-/* ============================================================================================================================
- * Function:isValidPolygon
- * Description:The functions determines the polygon passed is valid or not
- * Parameters:Polygon vector
- * Return Type:bool
- * =============================================================================================================================
-*/
+float Intersect::cross(Point pt_a, Point pt_b, Point pt_c)
+{
+	return ((pt_b.x - pt_a.x) * (pt_c.y - pt_a.y)) - ((pt_b.y - pt_a.y) * (pt_c.x - pt_a.x));
+}
+
+bool Intersect::nearlyEqual(float left, float right)
+{
+	const float EPSILON = 0.00001f;
+	return std::fabs(left - right) <= EPSILON;
+}
+
+bool Intersect::samePoint(Point left, Point right)
+{
+	return nearlyEqual(left.x, right.x) && nearlyEqual(left.y, right.y);
+}
+
+void Intersect::addUniquePoint(std::vector<Point> &points, Point point)
+{
+	for (std::vector<Point>::const_iterator pointIterator = points.begin(); pointIterator != points.end(); ++pointIterator)
+	{
+		if (samePoint(*pointIterator, point))
+			return;
+	}
+	points.push_back(point);
+}
 
 bool Intersect::isValidPolygon(std::vector<Point> polygon)
 {
 	const int MIN_SIZE = 3;
+	if (polygon.empty())
+		return false;
 	Point start = polygon.front();
 	Point end = polygon.back();
-	return (polygon.size() > MIN_SIZE && start.x == end.x && start.y == end.y);
+	return (polygon.size() > MIN_SIZE && samePoint(start, end));
 }
-
-/* ============================================================================================================================
- * Function:split
- * Description: This function converts all contents of the string to a vector of floats.
- * 				It throws an error if invalid float value is present in the string.
- * Parameters: string - Polygon string, floats - resultant vector, ch - space
- * Return Type:None
- * =============================================================================================================================
-*/
 
 void Intersect::split(const std::string &string, std::vector<float> &floats, char ch)
 {
-	size_t pos = string.find(ch);
-	size_t initialPos = 0;
+	(void)ch;
+	std::stringstream stream(string);
+	std::string token;
 	floats.clear();
 	try
 	{
-		while (pos != std::string::npos)
+		while (stream >> token)
 		{
-			floats.push_back(std::stof(string.substr(initialPos, pos - initialPos)));
-
-			initialPos = pos + 1;
-			pos = string.find(ch, initialPos);
+			size_t parsedCharacters = 0;
+			float value = std::stof(token, &parsedCharacters);
+			if (parsedCharacters != token.size())
+				throw std::invalid_argument("invalid float token");
+			floats.push_back(value);
 		}
-
-		// Add the last one
-		floats.push_back(std::stof(string.substr(initialPos, std::min(pos, string.size()) - initialPos + 1))); // stof throws an execption
 	}
-	catch (std::invalid_argument e)
+	catch (std::invalid_argument &e)
 	{
 		throw std::string("ERROR!! Input string contains invalid values for a point.");
 	}
-}
+	catch (std::out_of_range &e)
+	{
+		throw std::string("ERROR!! Input string contains invalid values for a point.");
+	}
 
-/* ============================================================================================================================
- * Function:removeSpacesCommas
- * Description:This function replaces all the commas with space and splits the string based on space.
- * Parameters: Polygon string
- * Return Type: float vector
- * =============================================================================================================================
-*/
+	if (floats.empty())
+		throw std::string("ERROR!! Input string contains invalid values for a point.");
+}
 
 std::vector<float> Intersect::removeSpacesCommas(std::string polygon)
 {
 	std::vector<float> temp;
 	std::string space = " ";
 
-	for (int index = 0; index < polygon.size(); index = index + 1)
+	for (std::string::size_type index = 0; index < polygon.size(); index = index + 1)
 	{
 		if (polygon[index] == ',')
 			polygon.replace(index, 1, space);
@@ -91,30 +115,19 @@ std::vector<float> Intersect::removeSpacesCommas(std::string polygon)
 	return temp;
 }
 
-/* ============================================================================================================================
- * Function:checkIntersecting
- * Description: This function checks if two line segments are interesting or not. If they are intersecting the intersection
- * 				points are updated to the intersect point
- * Parameters:	pt_a,pt_b,pt_c,pt_d - The 4 points which forms two line segments a1x + b1y = c1 and a2x + b2y = c2 respectively.
- * 				intersect - structure pointer to store intersect point
- * Return Type:bool
- * =============================================================================================================================
-*/
 bool Intersect::checkIntersecting(Intersect::Point pt_a, Intersect::Point pt_b, Intersect::Point pt_c, Intersect::Point pt_d, Intersect::Point *intersect)
 {
-	// creating line segments a1x + b1y = c1
 	float a1 = pt_b.y - pt_a.y;
 	float b1 = pt_a.x - pt_b.x;
 	float c1 = a1 * (pt_a.x) + b1 * (pt_a.y);
 
-	// creating line segments a2x + b2y = c2
 	float a2 = pt_d.y - pt_c.y;
 	float b2 = pt_c.x - pt_d.x;
 	float c2 = a2 * (pt_c.x) + b2 * (pt_c.y);
 
-	float determinant = (a1 * b2 - a2 * b1); // Calculating determinant of two lines
+	float determinant = (a1 * b2 - a2 * b1);
 
-	if (determinant == 0) // The lines are parallel.
+	if (nearlyEqual(determinant, 0.0f))
 	{
 		return false;
 	}
@@ -126,18 +139,11 @@ bool Intersect::checkIntersecting(Intersect::Point pt_a, Intersect::Point pt_b, 
 	}
 }
 
-/* ============================================================================================================================
- * Function: toVectorPointStructure
- * Description: The co-ordinates extracted from the vector are stored in structure called Points
- * Parameters: Vector with all the polygon points
- * Return Type: Polygon vector with Point structure
- * =============================================================================================================================
-*/
 std::vector<Intersect::Point> Intersect::toVectorPointStructure(std::vector<float> vect)
 {
 	std::vector<Point> poly;
 
-	for (int index = 0; index < vect.size(); index = index + 2)
+	for (std::vector<float>::size_type index = 0; index < vect.size(); index = index + 2)
 	{
 		Point p;
 		p.x = vect.at(index);
@@ -148,74 +154,182 @@ std::vector<Intersect::Point> Intersect::toVectorPointStructure(std::vector<floa
 	return poly;
 }
 
-/* ============================================================================================================================
- * Function: checkIfPointIsInsideLineSeg
- * Description: The function checks if intersection point lies inside the line segment formed by two points pt_a and pt_b
- * Parameters: pt_a, pt_b - Points of a line segment, pt_check - Intersection point to be checked
- * Return Type: bool
- * =============================================================================================================================
-*/
-
 bool Intersect::checkIfPointIsInsideLineSeg(Intersect::Point pt_a, Intersect::Point pt_b, Intersect::Point pt_check)
 {
-	float lowx = pt_a.x < pt_b.x ? pt_a.x : pt_b.x; // Gets the lowest value of x component comparing with pointA and pointB x components
-	float lowy = pt_a.y < pt_b.y ? pt_a.y : pt_b.y; // Gets the lowest value of y component comparing with pointA and pointB y components
-
-	float highx = pt_a.x > pt_b.x ? pt_a.x : pt_b.x; // Gets the highest value of x component comparing with pointA and pointB x components
-	float highy = pt_a.y > pt_b.y ? pt_a.y : pt_b.y; // Gets the highest value of y component comparing with pointA and pointB y components
-
-	// Checking if the x component of interference point lies between the x component of Point A and Point B
-	bool check_xcomponent = ((pt_check.x >= lowx) && (highx >= pt_check.x));
-	// Checking if the y component of interference Point lies between the y component of Point A and Point B
-	bool check_ycomponent = ((pt_check.y >= lowy) && (highy >= pt_check.y));
-
-	/* Returns true if the intersecting point lies inside the line segment, otherwise returns false */
-	return (check_xcomponent && check_ycomponent);
+	return pointOnSegment(pt_a, pt_b, pt_check);
 }
 
-/* ======================================================================================================================================
- * Function: overlap
- * Description:This function checks overlapping of two polygons
- * Parameter: PolygonA points string and PolygonB points string
- * Return Type: bool
- * =======================================================================================================================================
-*/
-
-bool Intersect::overlap(std::string polygonA, std::string polygonB)
+bool Intersect::pointOnSegment(Point pt_a, Point pt_b, Point pt_check)
 {
-	/* The comma and spaces in string of polygonA and polygonB are removed and stored in respective vectors */
-	std::vector<float> vectA = removeSpacesCommas(polygonA);
-	std::vector<float> vectB = removeSpacesCommas(polygonB);
+	const float EPSILON = 0.00001f;
+	if (!nearlyEqual(cross(pt_a, pt_b, pt_check), 0.0f))
+		return false;
 
-	/* As a point consist of two co-ordinates, we check if points are having two co-ordinates, else we throw an error*/
-	if ((vectA.size() % 2 != 0) || (vectB.size() % 2 != 0))
+	float lowx = std::min(pt_a.x, pt_b.x) - EPSILON;
+	float lowy = std::min(pt_a.y, pt_b.y) - EPSILON;
+	float highx = std::max(pt_a.x, pt_b.x) + EPSILON;
+	float highy = std::max(pt_a.y, pt_b.y) + EPSILON;
+
+	return (pt_check.x >= lowx && pt_check.x <= highx && pt_check.y >= lowy && pt_check.y <= highy);
+}
+
+bool Intersect::pointInPolygon(Point point, const std::vector<Point> &polygon)
+{
+	bool inside = false;
+	for (std::vector<Point>::size_type current = 0, previous = polygon.size() - 2; current < polygon.size() - 1; previous = current++)
+	{
+		Point start = polygon.at(previous);
+		Point end = polygon.at(current);
+		if (pointOnSegment(start, end, point))
+			return true;
+
+		bool crossesRay = ((start.y > point.y) != (end.y > point.y));
+		if (crossesRay)
+		{
+			float xIntersection = ((end.x - start.x) * (point.y - start.y) / (end.y - start.y)) + start.x;
+			if (point.x < xIntersection)
+				inside = !inside;
+		}
+	}
+	return inside;
+}
+
+std::vector<Intersect::Point> Intersect::edgeIntersectionCandidates(Point pt_a, Point pt_b, Point pt_c, Point pt_d)
+{
+	std::vector<Point> candidates;
+	Point intersect;
+	if (checkIntersecting(pt_a, pt_b, pt_c, pt_d, &intersect))
+	{
+		if (pointOnSegment(pt_a, pt_b, intersect) && pointOnSegment(pt_c, pt_d, intersect))
+			addUniquePoint(candidates, intersect);
+		return candidates;
+	}
+
+	if (nearlyEqual(cross(pt_a, pt_b, pt_c), 0.0f) && nearlyEqual(cross(pt_a, pt_b, pt_d), 0.0f))
+	{
+		if (pointOnSegment(pt_c, pt_d, pt_a))
+			addUniquePoint(candidates, pt_a);
+		if (pointOnSegment(pt_c, pt_d, pt_b))
+			addUniquePoint(candidates, pt_b);
+		if (pointOnSegment(pt_a, pt_b, pt_c))
+			addUniquePoint(candidates, pt_c);
+		if (pointOnSegment(pt_a, pt_b, pt_d))
+			addUniquePoint(candidates, pt_d);
+	}
+	return candidates;
+}
+
+std::vector<Intersect::Point> Intersect::parsePolygon(std::string polygon)
+{
+	std::vector<float> vect = removeSpacesCommas(polygon);
+
+	if (vect.size() % 2 != 0)
 		throw std::string("ERROR!! Input contains invalid no:of polygon co-ordinates.");
 
-	/* The polygon point values in vector are stored in a Point structure. The structure has two members which represents x component and y component of a point */
-	std::vector<Point> polyA = toVectorPointStructure(vectA);
-	std::vector<Point> polyB = toVectorPointStructure(vectB);
+	std::vector<Point> poly = toVectorPointStructure(vect);
 
-	/* Freeing the memory used by vectors*/
-	vectA.clear();
-	vectB.clear();
-
-	/* Check if the points received form vector is a valid polygon. If not, throws an error*/
-	if (!Intersect::isValidPolygon(polyA) || !Intersect::isValidPolygon(polyB))
+	if (!Intersect::isValidPolygon(poly))
 		throw std::string("ERROR!! Inputs are not valid Polygons.");
 
-	/* Checks overlapping of two polygons. Returns true if overlapped else false*/
-	for (int polyA_index = 0; polyA_index < polyA.size() - 1; polyA_index++)
+	return poly;
+}
+
+bool Intersect::polygonsOverlap(const std::vector<Point> &polygonA, const std::vector<Point> &polygonB)
+{
+	for (std::vector<Point>::size_type polyA_index = 0; polyA_index < polygonA.size() - 1; polyA_index++)
 	{
-		for (int polyB_index = 0; polyB_index < polyB.size() - 1; polyB_index++)
+		for (std::vector<Point>::size_type polyB_index = 0; polyB_index < polygonB.size() - 1; polyB_index++)
 		{
-			Point intersect;
-			bool isIntersecting = checkIntersecting(polyA.at(polyA_index), polyA.at(polyA_index + 1), polyB.at(polyB_index), polyB.at(polyB_index + 1), &intersect);
-			if (isIntersecting)
+			if (!edgeIntersectionCandidates(polygonA.at(polyA_index), polygonA.at(polyA_index + 1), polygonB.at(polyB_index), polygonB.at(polyB_index + 1)).empty())
+				return true;
+		}
+	}
+
+	for (std::vector<Point>::size_type index = 0; index < polygonA.size() - 1; index++)
+	{
+		if (pointInPolygon(polygonA.at(index), polygonB))
+			return true;
+	}
+	for (std::vector<Point>::size_type index = 0; index < polygonB.size() - 1; index++)
+	{
+		if (pointInPolygon(polygonB.at(index), polygonA))
+			return true;
+	}
+
+	return false;
+}
+
+bool Intersect::polygonsOverlapAllThree(const std::vector<Point> &polygonA, const std::vector<Point> &polygonB, const std::vector<Point> &polygonC)
+{
+	for (std::vector<Point>::size_type index = 0; index < polygonA.size() - 1; index++)
+	{
+		if (pointInPolygon(polygonA.at(index), polygonB) && pointInPolygon(polygonA.at(index), polygonC))
+			return true;
+	}
+	for (std::vector<Point>::size_type index = 0; index < polygonB.size() - 1; index++)
+	{
+		if (pointInPolygon(polygonB.at(index), polygonA) && pointInPolygon(polygonB.at(index), polygonC))
+			return true;
+	}
+	for (std::vector<Point>::size_type index = 0; index < polygonC.size() - 1; index++)
+	{
+		if (pointInPolygon(polygonC.at(index), polygonA) && pointInPolygon(polygonC.at(index), polygonB))
+			return true;
+	}
+
+	for (std::vector<Point>::size_type polyA_index = 0; polyA_index < polygonA.size() - 1; polyA_index++)
+	{
+		for (std::vector<Point>::size_type polyB_index = 0; polyB_index < polygonB.size() - 1; polyB_index++)
+		{
+			std::vector<Point> candidates = edgeIntersectionCandidates(polygonA.at(polyA_index), polygonA.at(polyA_index + 1), polygonB.at(polyB_index), polygonB.at(polyB_index + 1));
+			for (std::vector<Point>::const_iterator candidate = candidates.begin(); candidate != candidates.end(); ++candidate)
 			{
-				if ((checkIfPointIsInsideLineSeg(polyA.at(polyA_index), polyA.at(polyA_index + 1), intersect)) && (checkIfPointIsInsideLineSeg(polyB.at(polyB_index), polyB.at(polyB_index + 1), intersect)))
+				if (pointInPolygon(*candidate, polygonC))
 					return true;
 			}
 		}
 	}
+	for (std::vector<Point>::size_type polyA_index = 0; polyA_index < polygonA.size() - 1; polyA_index++)
+	{
+		for (std::vector<Point>::size_type polyC_index = 0; polyC_index < polygonC.size() - 1; polyC_index++)
+		{
+			std::vector<Point> candidates = edgeIntersectionCandidates(polygonA.at(polyA_index), polygonA.at(polyA_index + 1), polygonC.at(polyC_index), polygonC.at(polyC_index + 1));
+			for (std::vector<Point>::const_iterator candidate = candidates.begin(); candidate != candidates.end(); ++candidate)
+			{
+				if (pointInPolygon(*candidate, polygonB))
+					return true;
+			}
+		}
+	}
+	for (std::vector<Point>::size_type polyB_index = 0; polyB_index < polygonB.size() - 1; polyB_index++)
+	{
+		for (std::vector<Point>::size_type polyC_index = 0; polyC_index < polygonC.size() - 1; polyC_index++)
+		{
+			std::vector<Point> candidates = edgeIntersectionCandidates(polygonB.at(polyB_index), polygonB.at(polyB_index + 1), polygonC.at(polyC_index), polygonC.at(polyC_index + 1));
+			for (std::vector<Point>::const_iterator candidate = candidates.begin(); candidate != candidates.end(); ++candidate)
+			{
+				if (pointInPolygon(*candidate, polygonA))
+					return true;
+			}
+		}
+	}
+
 	return false;
+}
+
+bool Intersect::overlap(std::string polygonA, std::string polygonB)
+{
+	std::vector<Point> polyA = parsePolygon(polygonA);
+	std::vector<Point> polyB = parsePolygon(polygonB);
+
+	return polygonsOverlap(polyA, polyB);
+}
+
+bool Intersect::overlap(std::string polygonA, std::string polygonB, std::string polygonC)
+{
+	std::vector<Point> polyA = parsePolygon(polygonA);
+	std::vector<Point> polyB = parsePolygon(polygonB);
+	std::vector<Point> polyC = parsePolygon(polygonC);
+
+	return polygonsOverlapAllThree(polyA, polyB, polyC);
 }
