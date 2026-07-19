@@ -4,7 +4,7 @@
 
 ## 1. Overview
 
-**Problem Domain**: This C++ header library solves the fundamental computational geometry problem of determining whether two polygons overlap or intersect in 2D space. This is a critical operation in
+**Problem Domain**: This C++ header library solves the fundamental computational geometry problem of determining whether two polygons overlap or intersect in 2D space, including whether three polygons share a common point. This is a critical operation in
 computer graphics, game development, GIS systems, and CAD applications.
 
 **Real-World Applications**:
@@ -150,14 +150,16 @@ void split(const std::string &string, std::vector<float> &floats, char ch)
 ## 4. Code Structure
 
 **File Organization**:
-- `Intersect.h` (Lines 5-128): Complete header-only implementation
-- `repository/Intersect.h`: Duplicate header file for distribution
+- `Intersect.h`: Complete header-only implementation
+- `main.cpp`: Demonstration program for two- and three-polygon overlap checks
+- `tests.cpp`: Assert-based behavioral coverage
 
 **Class Architecture**:
 ```
 Intersect (Static Class)
 ├── Public Interface
-│   └── overlap(string, string) → bool
+│   ├── overlap(string, string) → bool
+│   └── overlap(string, string, string) → bool
 ├── Private Data Structures
 │   └── Point{float x, y}
 └── Private Utilities
@@ -166,6 +168,9 @@ Intersect (Static Class)
     ├── toVectorPointStructure() → vector<Point>
     ├── checkIntersecting() → bool
     ├── checkIfPointIsInsideLineSeg() → bool
+    ├── pointInPolygon() → bool
+    ├── polygonsOverlap() → bool
+    ├── polygonsOverlapAllThree() → bool
     └── isValidPolygon() → bool
 ```
 
@@ -174,6 +179,10 @@ Intersect (Static Class)
 2. Numeric vector → `toVectorPointStructure()` → Point vector
 3. Point vector → `isValidPolygon()` → validation
 4. Point vectors → intersection algorithms → overlap result
+
+**Public Entry Points**:
+- `Intersect::overlap(polygonA, polygonB)` returns `true` when the two closed polygon strings overlap, touch, or one contains the other.
+- `Intersect::overlap(polygonA, polygonB, polygonC)` returns `true` only when all three closed polygon strings share at least one common point. Pairwise overlap alone is not enough; the same point must be inside or on the boundary of every polygon.
 
 ## 5. Practical Testing & Verification
 
@@ -190,7 +199,18 @@ assert(result == true);
 // Verification: Visual check - squares overlap in region (1,1)-(2,2)
 ```
 
-### Test Case 2: No Intersection
+### Test Case 2: Three-Polygon Common Overlap
+```cpp
+std::string polyA = "0,0 0,4 4,4 4,0 0,0";
+std::string polyB = "2,2 2,6 6,6 6,2 2,2";
+std::string polyC = "1,1 1,3 3,3 3,1 1,1";
+
+// Expected: true because all three squares share the region (2,2)-(3,3)
+bool result = Intersect::overlap(polyA, polyB, polyC);
+assert(result == true);
+```
+
+### Test Case 3: No Intersection
 ```cpp
 std::string polyA = "0,0 1,0 1,1 0,1 0,0";  // Unit square at origin
 std::string polyB = "2,2 3,2 3,3 2,3 2,2";  // Unit square displaced
@@ -202,18 +222,19 @@ assert(result == false);
 // Verification: Minimum distance between polygons > 0
 ```
 
-### Test Case 3: Edge Case - Shared Edge
+### Test Case 4: Edge Case - Shared Edge
 ```cpp
 std::string polyA = "0,0 1,0 1,1 0,1 0,0";
 std::string polyB = "1,0 2,0 2,1 1,1 1,0";  // Adjacent squares
 
-// Expected: Depends on implementation (edge touching)
+// Expected: true (edge touching counts as overlap)
 bool result = Intersect::overlap(polyA, polyB);
+assert(result == true);
 
-// Verification: Check if algorithm treats edge contact as intersection
+// Verification: Shared boundary is treated as intersection
 ```
 
-### Test Case 4: Invalid Input Handling
+### Test Case 5: Invalid Input Handling
 ```cpp
 std::string invalidPoly = "0,0 1,abc 1,1";  // Contains non-numeric data
 
@@ -227,16 +248,15 @@ try {
 // Verification: Exception thrown with descriptive message
 ```
 
-### Test Case 5: Polygon Validation
+### Test Case 6: Polygon Validation
 ```cpp
 // Test minimum vertex requirement
 std::string triangle = "0,0 1,0 0,1 0,0";     // Valid (4 points, closed)
 std::string line = "0,0 1,1 0,0";             // Invalid (only 3 points)
 std::string open = "0,0 1,0 1,1 0,1";         // Invalid (not closed)
 
-// Manual validation test
-std::vector<Intersect::Point> points = {{0,0}, {1,0}, {1,1}, {0,0}};
-bool valid = Intersect::isValidPolygon(points);  // Should be true
+// Validation is applied by Intersect::overlap before geometry checks.
+// Invalid inputs throw std::string with a descriptive error message.
 
 // Verification: Check size > 3 AND first == last point
 ```
