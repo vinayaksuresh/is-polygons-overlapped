@@ -305,3 +305,7 @@ bool parallel = !Intersect::checkIntersecting(
 - **Game Development**: Essential for 2D physics engines and spatial queries
 - **GIS Applications**: Spatial analysis and geometric operations
 - **Algorithm Design**: Template for geometric predicate implementation
+
+## 11. Guide
+
+The full write-up is in [the overlap guide](docs/guide/overlap-guide.pdf).
