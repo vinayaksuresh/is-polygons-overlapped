@@ -1,5 +1,3 @@
-import OverlapDiagram from "./OverlapDiagram";
-
 export default function OverlapSection() {
   return (
     <section className="py-16">
@@ -8,7 +6,17 @@ export default function OverlapSection() {
         Five arrangements of two polygons, from fully apart to identical.
       </p>
       <div className="mt-10">
-        <OverlapDiagram />
+        <picture>
+          <img
+            src="/overlap-rings.webp"
+            alt="Five rings, one per overlap case: no shared point, a shared vertex, edges cross, one inside the other, and the same polygon twice"
+            width={1280}
+            height={1280}
+            loading="lazy"
+            decoding="async"
+            className="mx-auto w-full max-w-[640px]"
+          />
+        </picture>
       </div>
     </section>
   );
