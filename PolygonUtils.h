@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstddef>
-#include <vector>
 
 struct Pt {
     double x;
