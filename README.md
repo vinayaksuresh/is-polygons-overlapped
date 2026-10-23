@@ -9,6 +9,7 @@ computer graphics, game development, GIS systems, and CAD applications.
 
 **Real-World Applications**:
 - **Game Development**: Collision detection between game objects, sprite overlap detection
+- **Computer Graphics**: Polygon clipping for rendering pipelines, visibility determination
 - **GIS Systems**: Spatial analysis, map overlay operations, territory boundary analysis
 - **CAD Software**: Design validation, interference checking between components
 - **Robotics**: Path planning, obstacle avoidance algorithms
