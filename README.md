@@ -305,3 +305,5 @@ bool parallel = !Intersect::checkIntersecting(
 - **Game Development**: Essential for 2D physics engines and spatial queries
 - **GIS Applications**: Spatial analysis and geometric operations
 - **Algorithm Design**: Template for geometric predicate implementation
+
+Build with any C++17 compiler.
