@@ -14,7 +14,7 @@ inline double polygonArea(const std::vector<Pt>& poly) {
     double sum = 0;
     for (std::size_t i = 0; i < poly.size(); ++i) {
         const Pt& a = poly[i];
-        const Pt& b = poly[i + 1];
+        const Pt& b = poly[(i + 1) % poly.size()];
         sum += a.x * b.y - b.x * a.y;
     }
     return sum / 2;
@@ -44,4 +44,13 @@ inline int closestVertex(const std::vector<Pt>& poly, Pt q) {
         }
     }
     return best;
+}
+
+// Length of the polygon's boundary, closing edge included.
+inline double perimeter(const std::vector<Pt>& poly) {
+    double total = 0;
+    for (std::size_t i = 0; i + 1 < poly.size(); ++i) {
+        total += std::hypot(poly[i + 1].x - poly[i].x, poly[i + 1].y - poly[i].y);
+    }
+    return total;
 }
