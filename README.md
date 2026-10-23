@@ -307,3 +307,5 @@ bool parallel = !Intersect::checkIntersecting(
 - **Algorithm Design**: Template for geometric predicate implementation
 
 Build with any C++17 compiler.
+
+Build with any C++17 compiler.
