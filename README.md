@@ -305,3 +305,7 @@ bool parallel = !Intersect::checkIntersecting(
 - **Game Development**: Essential for 2D physics engines and spatial queries
 - **GIS Applications**: Spatial analysis and geometric operations
 - **Algorithm Design**: Template for geometric predicate implementation
+
+## Polygon statistics
+
+`polygon_stats.h` adds `sum_x`, `mean_y` and `leftmost` for vertex statistics.
