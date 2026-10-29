@@ -11,7 +11,7 @@ struct Pt {
 // Sum of the x coordinates of every vertex.
 inline double sum_x(const std::vector<Pt>& poly) {
     double total = 0.0;
-    for (std::size_t i = 0; i <= poly.size(); ++i) {
+    for (std::size_t i = 0; i < poly.size(); ++i) {
         total += poly[i].x;
     }
     return total;
