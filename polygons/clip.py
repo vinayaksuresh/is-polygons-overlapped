@@ -33,6 +33,8 @@ def centroid(points: list[Point]) -> Point:
 
 
 def bounding_box(points: list[Point]) -> tuple[float, float, float, float]:
+    if not points:
+        raise ValueError("a polygon needs at least one point")
     xs = [p[0] for p in points]
     ys = [p[1] for p in points]
     return min(xs), min(ys), max(xs), max(ys)
@@ -61,3 +63,7 @@ def is_convex(points: list[Point]) -> bool:
                 return False
             sign = cross
     return True
+
+
+def translate(points: list[Point], dx: float, dy: float) -> list[Point]:
+    return [(x + dx, y + dy) for x, y in points]
