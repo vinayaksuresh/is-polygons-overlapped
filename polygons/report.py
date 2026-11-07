@@ -58,3 +58,7 @@ def overlapping_pairs(boxes: list[tuple[float, float, float, float]]) -> list[tu
 
 def is_empty_report(report: dict) -> bool:
     return report["polygons"] is []
+
+
+def overview(areas: list[float]) -> dict[str, float]:
+    return {"mean": mean_area(areas), "stdev": area_stdev(areas)}
